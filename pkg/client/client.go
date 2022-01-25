@@ -1,12 +1,12 @@
 package client
 
 import (
-	"encoding/json"
 	"log"
 	"net/url"
 	"os"
 	"os/signal"
 
+	"github.com/ArtyomArtamonov/encrypted-websocket-chat/pkg/ciphers"
 	"github.com/gorilla/websocket"
 )
 
@@ -14,6 +14,9 @@ type Client struct {
 	url url.URL
 	conn *websocket.Conn
 	name string
+
+	ciphers.CryptoKeys
+	partnerKeys ciphers.CryptoKeys
 }
 
 func NewClient(url url.URL, name string) *Client {
@@ -22,6 +25,8 @@ func NewClient(url url.URL, name string) *Client {
 		name: name,
 	}
 }
+
+const KEY_LENGTH = 2048
 
 func (cl Client) Run() {
 	// Ctrl+C notifier for graceful stopping
@@ -37,23 +42,26 @@ func (cl Client) Run() {
 	defer c.Close()
 	cl.conn = c
 
+	// Generate and send key before messaging
+	{ 
+		priv, pub := ciphers.GenerateKeyPair(KEY_LENGTH)
+		cl.PrivateKey = priv
+		cl.PublicKey = pub
+
+		cl.marshalAndSend(HandshakeFrameType, ciphers.PublicKeyToBytes(pub))
+	}
+	
+	
 	// handleReceiver will handle incoming messages
 	done := make(chan struct{})
-	go cl.handleReceive(done)
+	go cl.receiver(done)
 
 	// handleSender will handle outgoing messages 
 	// provided by stdin
-	var frameCh = make(chan *Frame)
-	go cl.handleSender(frameCh)
+	go cl.sender()
 
 	for {
 		select {
-		case msg := <-frameCh:
-			bytes, err := json.Marshal(msg)
-			if err != nil {
-				log.Fatalf("Could not marshal frame %v", msg)
-			}
-			c.WriteMessage(1, bytes)
 		case <-done:
 			return
 		case <-interrupt:
