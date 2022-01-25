@@ -36,7 +36,7 @@ func (s *Server) Run(ipaddr string) {
 	})
 
 	log.Print("Server started")
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(ipaddr, nil)
 }
 
 func (s *Server) handleMessages(c *websocket.Conn){

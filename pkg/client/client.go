@@ -1,8 +1,6 @@
 package client
 
 import (
-	"bufio"
-	"fmt"
 	"log"
 	"net/url"
 	"os"
@@ -14,11 +12,13 @@ import (
 type Client struct {
 	url url.URL
 	conn *websocket.Conn
+	name string
 }
 
-func NewClient(url url.URL) *Client {
+func NewClient(url url.URL, name string) *Client {
 	return &Client{
 		url: url,
+		name: name,
 	}
 }
 
@@ -36,14 +36,14 @@ func (cl Client) Run() {
 	defer c.Close()
 	cl.conn = c
 
-	// handleReader will handle incoming messages
+	// handleReceiver will handle incoming messages
 	done := make(chan struct{})
-	go cl.handleReader(done)
+	go cl.handleReceive(done)
 
-	// handleWriter will handle outgoing messages 
+	// handleSender will handle outgoing messages 
 	// provided by stdin
 	var messageChan = make(chan string)
-	go cl.handleWriter(messageChan)
+	go cl.handleSender(messageChan)
 
 	for {
 		select {
@@ -63,26 +63,5 @@ func (cl Client) Run() {
 			}
 			return
 		}
-	}
-}
-
-func (c *Client) handleWriter(messageCh chan string) {
-	for {
-		scanner := bufio.NewScanner(os.Stdin)
-		scanner.Scan()
-		line := scanner.Text()
-		messageCh <- line
-	}
-}
-
-func (c *Client) handleReader(doneCh chan struct{}) {
-	defer close(doneCh)
-	for {
-		_, message, err := c.conn.ReadMessage()
-		if err != nil {
-			log.Println("read:", err)
-			return
-		}
-		fmt.Printf("Message: %s\n", message)
 	}
 }
