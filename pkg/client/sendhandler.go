@@ -5,11 +5,13 @@ import (
 	"os"
 )
 
-func (c *Client) handleSender(messageCh chan string) {
+func (c *Client) handleSender(frameCh chan *Frame) {
 	for {
 		scanner := bufio.NewScanner(os.Stdin)
 		scanner.Scan()
 		line := scanner.Text()
-		messageCh <- line
+
+		frame := NewFrame(c.name, line, MessageFrameType)
+		frameCh <- frame
 	}
 }

@@ -1,6 +1,7 @@
 package client
 
 import (
+	"encoding/json"
 	"log"
 	"net/url"
 	"os"
@@ -42,13 +43,17 @@ func (cl Client) Run() {
 
 	// handleSender will handle outgoing messages 
 	// provided by stdin
-	var messageChan = make(chan string)
-	go cl.handleSender(messageChan)
+	var frameCh = make(chan *Frame)
+	go cl.handleSender(frameCh)
 
 	for {
 		select {
-		case msg := <-messageChan:
-			c.WriteMessage(1, []byte(msg))
+		case msg := <-frameCh:
+			bytes, err := json.Marshal(msg)
+			if err != nil {
+				log.Fatalf("Could not marshal frame %v", msg)
+			}
+			c.WriteMessage(1, bytes)
 		case <-done:
 			return
 		case <-interrupt:
