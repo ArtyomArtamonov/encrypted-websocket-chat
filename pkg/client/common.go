@@ -6,6 +6,7 @@ const (
 	SystemFrameType FrameType = 0
 	MessageFrameType FrameType = 1
 	HandshakeFrameType FrameType = 2
+	PartnerDisconnectedFrameType FrameType = 3
 )
 
 type Frame struct {

@@ -49,6 +49,8 @@ func (c *Client) receiver(doneCh chan struct{}) {
 				c.marshalAndSend(HandshakeFrameType, ciphers.PublicKeyToBytes(c.PublicKey))
 				publicKeyWasSent = true
 			}
+		case PartnerDisconnectedFrameType:
+			c.partnerKeys.PublicKey = nil
 		}
 	}
 }

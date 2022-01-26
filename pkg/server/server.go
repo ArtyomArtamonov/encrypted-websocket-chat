@@ -10,7 +10,7 @@ import (
 
 type Server struct {
 	upgrader *websocket.Upgrader
-	connections []*websocket.Conn
+	storage *ConnectionStorage
 }
 
 func NewServer(readBufferSize, writeBufferSize int) *Server {
@@ -19,6 +19,7 @@ func NewServer(readBufferSize, writeBufferSize int) *Server {
 			ReadBufferSize: readBufferSize,
 			WriteBufferSize: writeBufferSize,
 		},
+		storage: NewStorage(),
 	}
 }
 
@@ -30,13 +31,24 @@ func (s *Server) Run(ipaddr string) {
 			fmt.Fprint(rw, "Could not upgrade")
 			log.Fatal("Could not upgrade")
 		}
-		s.connections = append(s.connections, conn)
+		s.storage.add(conn)
 		
+		conn.SetCloseHandler(s.getCloseHandler(conn))
 		go s.handleMessages(conn)
+		
 	})
 
 	log.Print("Server started")
 	http.ListenAndServe(ipaddr, nil)
+}
+
+func (s *Server) getCloseHandler(conn *websocket.Conn) func(code int, text string) error {
+	handler := func(_ int, _ string) error {
+		s.storage.delete(conn)
+		return nil
+	}
+
+	return handler
 }
 
 func (s *Server) handleMessages(c *websocket.Conn){
@@ -51,14 +63,16 @@ func (s *Server) handleMessages(c *websocket.Conn){
 		// Print the message to the console
 		fmt.Printf("%s sent: %s\n", c.RemoteAddr(), string(msg))
 
-		for _, user := range s.connections{
+		s.storage.Lock()
+		for user := range s.storage.Connections {
 			if user == c {
 				continue
 			}
 			if err = user.WriteMessage(msgType, msg); err != nil {
-				log.Fatalf("Could not send message to user %v", user)
+				log.Printf("Could not send message to user")
 				continue
 			}
 		}
+		s.storage.Unlock()
 	}
 }

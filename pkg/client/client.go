@@ -43,7 +43,7 @@ func (cl Client) Run() {
 	cl.conn = c
 
 	// Generate and send key before messaging
-	{ 
+	{
 		priv, pub := ciphers.GenerateKeyPair(KEY_LENGTH)
 		cl.PrivateKey = priv
 		cl.PublicKey = pub
@@ -66,6 +66,8 @@ func (cl Client) Run() {
 			return
 		case <-interrupt:
 			log.Println("Interrupt")
+
+			cl.marshalAndSend(PartnerDisconnectedFrameType, []byte{})
 
 			// Cleanly close the connection by sending a close message and then
 			// waiting (with timeout) for the server to close the connection.
