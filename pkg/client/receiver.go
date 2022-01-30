@@ -41,12 +41,12 @@ func (c *Client) receiver(doneCh chan struct{}) {
 			fmt.Printf("%s: %s\n", frame.From, string(frame.Data))
 		case SystemFrameType:
 			log.Printf("Got system message: %v", frame.Data)
-		case HandshakeFrameType:
+		case RsaHandshakeFrameType:
 			key := ciphers.BytesToPublicKey(frame.Data)
 			c.partnerKeys.PublicKey = key
 			
 			if !publicKeyWasSent {
-				c.marshalAndSend(HandshakeFrameType, ciphers.PublicKeyToBytes(c.PublicKey))
+				c.marshalAndSend(RsaHandshakeFrameType, ciphers.PublicKeyToBytes(c.PublicKey))
 				publicKeyWasSent = true
 			}
 		case PartnerDisconnectedFrameType:

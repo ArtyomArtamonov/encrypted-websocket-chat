@@ -48,7 +48,7 @@ func (cl Client) Run() {
 		cl.PrivateKey = priv
 		cl.PublicKey = pub
 
-		cl.marshalAndSend(HandshakeFrameType, ciphers.PublicKeyToBytes(pub))
+		cl.marshalAndSend(RsaHandshakeFrameType, ciphers.PublicKeyToBytes(pub))
 	}
 	
 	

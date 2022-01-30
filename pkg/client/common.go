@@ -5,8 +5,9 @@ type FrameType uint8
 const (
 	SystemFrameType FrameType = 0
 	MessageFrameType FrameType = 1
-	HandshakeFrameType FrameType = 2
+	RsaHandshakeFrameType FrameType = 2
 	PartnerDisconnectedFrameType FrameType = 3
+	AesHandshakeFrameType FrameType = 4
 )
 
 type Frame struct {
