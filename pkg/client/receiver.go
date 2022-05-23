@@ -20,11 +20,18 @@ func (c *Client) receiver(doneCh chan struct{}) {
 			return
 		}
 
-		decrypted, err := ciphers.DecryptWithPrivateKey(message, c.PrivateKey)
+		var decrypted []byte
+		if c.aesKey != nil {
+			decrypted, err = ciphers.DecryptDataAES(message, c.aesKey)
+			
+		} else {
+			decrypted, err = ciphers.DecryptWithPrivateKey(message, c.PrivateKey)
+		}
+
 		if err != nil {
 			decrypted = message
 		}
-		
+
 		frame := Frame{}
 		err = json.Unmarshal(decrypted, &frame)
 		if err != nil {
@@ -35,8 +42,10 @@ func (c *Client) receiver(doneCh chan struct{}) {
 			}
 			messageConstructor = ""
 		}
+		
+		
 
-		switch frame.Type{
+		switch frame.Type {
 		case MessageFrameType:
 			fmt.Printf("%s: %s\n", frame.From, string(frame.Data))
 		case SystemFrameType:
@@ -44,11 +53,21 @@ func (c *Client) receiver(doneCh chan struct{}) {
 		case RsaHandshakeFrameType:
 			key := ciphers.BytesToPublicKey(frame.Data)
 			c.partnerKeys.PublicKey = key
-			
+
 			if !publicKeyWasSent {
-				c.marshalAndSend(RsaHandshakeFrameType, ciphers.PublicKeyToBytes(c.PublicKey))
+				c.marshalAndSendRecursivly(RsaHandshakeFrameType, ciphers.PublicKeyToBytes(c.PublicKey), c.sendRSA)
 				publicKeyWasSent = true
+				continue
 			}
+
+			aesKey := ciphers.GenerateKeyAES()
+			c.aesKey = aesKey
+			c.marshalAndSendRecursivly(AesHandshakeFrameType, aesKey, c.sendRSA)
+			
+			log.Printf("aes was sent")
+		case AesHandshakeFrameType:
+			c.aesKey = frame.Data
+			log.Printf("got aes")
 		case PartnerDisconnectedFrameType:
 			c.partnerKeys.PublicKey = nil
 		}

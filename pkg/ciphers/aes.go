@@ -8,7 +8,7 @@ import (
 	"log"
 )
 
-func GenerateKey() []byte {
+func GenerateKeyAES() []byte {
 	buf := make([]byte, 32)
 	if _, err := io.ReadFull(rand.Reader, buf); err != nil {
 		log.Fatal("Could not generate AES key")
@@ -17,26 +17,26 @@ func GenerateKey() []byte {
 	return buf
 }
 
-func EncryptData(data []byte, key []byte) []byte {
+func EncryptDataAES(data []byte, key []byte) ([]byte, error) {
 	c, err := aes.NewCipher(key)
 	if err != nil {
-		log.Fatal("Could not create new AES cipher")
+		return nil, err
 	}
 
 	gcm, err := cipher.NewGCM(c)
 	if err != nil {
-		log.Fatal("Could not initialize GCM")
+		return nil, err
 	}
 
 	nonce := make([]byte, gcm.NonceSize())
 	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
-        log.Fatal(err)
+        return nil, err
     }
 
-	return gcm.Seal(nonce, nonce, data, nil)
+	return gcm.Seal(nonce, nonce, data, nil), nil
 }
 
-func DecryptData(encrypted []byte, key []byte) ([]byte, error) {
+func DecryptDataAES(encrypted []byte, key []byte) ([]byte, error) {
 	c, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, err

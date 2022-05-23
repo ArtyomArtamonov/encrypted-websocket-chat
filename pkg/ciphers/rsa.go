@@ -9,7 +9,7 @@ import (
   	"log"
 )
 
-type CryptoKeys struct {
+type RSACryptoKeys struct {
 	PublicKey *rsa.PublicKey
 	PrivateKey *rsa.PrivateKey
 }

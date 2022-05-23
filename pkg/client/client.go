@@ -11,17 +11,18 @@ import (
 )
 
 type Client struct {
-	url url.URL
+	url  url.URL
 	conn *websocket.Conn
 	name string
 
-	ciphers.CryptoKeys
-	partnerKeys ciphers.CryptoKeys
+	aesKey []byte
+	ciphers.RSACryptoKeys
+	partnerKeys ciphers.RSACryptoKeys
 }
 
 func NewClient(url url.URL, name string) *Client {
 	return &Client{
-		url: url,
+		url:  url,
 		name: name,
 	}
 }
@@ -48,15 +49,14 @@ func (cl Client) Run() {
 		cl.PrivateKey = priv
 		cl.PublicKey = pub
 
-		cl.marshalAndSend(RsaHandshakeFrameType, ciphers.PublicKeyToBytes(pub))
+		cl.marshalAndSendRecursivly(RsaHandshakeFrameType, ciphers.PublicKeyToBytes(pub), cl.sendRSA)
 	}
-	
-	
+
 	// handleReceiver will handle incoming messages
 	done := make(chan struct{})
 	go cl.receiver(done)
 
-	// handleSender will handle outgoing messages 
+	// handleSender will handle outgoing messages
 	// provided by stdin
 	go cl.sender()
 
@@ -67,7 +67,7 @@ func (cl Client) Run() {
 		case <-interrupt:
 			log.Println("Interrupt")
 
-			cl.marshalAndSend(PartnerDisconnectedFrameType, []byte{})
+			cl.marshalAndSendRecursivly(PartnerDisconnectedFrameType, []byte{}, cl.sendRSA)
 
 			// Cleanly close the connection by sending a close message and then
 			// waiting (with timeout) for the server to close the connection.
