@@ -3,16 +3,16 @@ package client
 type FrameType uint8
 
 const (
-	SystemFrameType FrameType = 0
-	MessageFrameType FrameType = 1
-	RsaHandshakeFrameType FrameType = 2
+	SystemFrameType              FrameType = 0
+	MessageFrameType             FrameType = 1
+	RsaHandshakeFrameType        FrameType = 2
 	PartnerDisconnectedFrameType FrameType = 3
-	AesHandshakeFrameType FrameType = 4
+	AesHandshakeFrameType        FrameType = 4
 )
 
 type Frame struct {
-	From string `json:"from"`
-	Data []byte `json:"data"`
+	From string    `json:"from"`
+	Data []byte    `json:"data"`
 	Type FrameType `json:"type"`
 }
 

@@ -6,11 +6,11 @@ import (
 	"crypto/sha512"
 	"crypto/x509"
 	"encoding/pem"
-  	"log"
+	"log"
 )
 
 type RSACryptoKeys struct {
-	PublicKey *rsa.PublicKey
+	PublicKey  *rsa.PublicKey
 	PrivateKey *rsa.PrivateKey
 }
 
@@ -105,4 +105,4 @@ func DecryptWithPrivateKey(ciphertext []byte, priv *rsa.PrivateKey) ([]byte, err
 		return nil, err
 	}
 	return plaintext, nil
-} 
+}

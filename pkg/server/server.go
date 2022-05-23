@@ -10,13 +10,13 @@ import (
 
 type Server struct {
 	upgrader *websocket.Upgrader
-	storage *ConnectionStorage
+	storage  *ConnectionStorage
 }
 
 func NewServer(readBufferSize, writeBufferSize int) *Server {
 	return &Server{
 		upgrader: &websocket.Upgrader{
-			ReadBufferSize: readBufferSize,
+			ReadBufferSize:  readBufferSize,
 			WriteBufferSize: writeBufferSize,
 		},
 		storage: NewStorage(),
@@ -32,10 +32,10 @@ func (s *Server) Run(ipaddr string) {
 			log.Fatal("Could not upgrade")
 		}
 		s.storage.add(conn)
-		
+
 		conn.SetCloseHandler(s.getCloseHandler(conn))
 		go s.handleMessages(conn)
-		
+
 	})
 
 	log.Print("Server started")
@@ -51,7 +51,7 @@ func (s *Server) getCloseHandler(conn *websocket.Conn) func(code int, text strin
 	return handler
 }
 
-func (s *Server) handleMessages(c *websocket.Conn){
+func (s *Server) handleMessages(c *websocket.Conn) {
 	log.Print("Server listening for client messages")
 	for {
 		// Read message from clients

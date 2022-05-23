@@ -11,7 +11,7 @@ type ConnectionStorage struct {
 	sync.Mutex
 }
 
-func NewStorage() *ConnectionStorage{
+func NewStorage() *ConnectionStorage {
 	return &ConnectionStorage{
 		Connections: make(map[*websocket.Conn]bool),
 	}

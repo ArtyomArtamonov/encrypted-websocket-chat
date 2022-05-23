@@ -12,4 +12,3 @@ func main() {
 	server := server.NewServer(1024, 1024)
 	server.Run(*addr)
 }
-

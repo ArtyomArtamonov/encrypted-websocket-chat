@@ -30,8 +30,8 @@ func EncryptDataAES(data []byte, key []byte) ([]byte, error) {
 
 	nonce := make([]byte, gcm.NonceSize())
 	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
-        return nil, err
-    }
+		return nil, err
+	}
 
 	return gcm.Seal(nonce, nonce, data, nil), nil
 }
@@ -49,14 +49,14 @@ func DecryptDataAES(encrypted []byte, key []byte) ([]byte, error) {
 
 	nonceSize := gcm.NonceSize()
 	if len(encrypted) < nonceSize {
-        return nil, err
-    }
+		return nil, err
+	}
 
 	nonce, encrypted := encrypted[:nonceSize], encrypted[nonceSize:]
-    plaintext, err := gcm.Open(nil, nonce, encrypted, nil)
-    if err != nil {
-        return nil, err
-    }
+	plaintext, err := gcm.Open(nil, nonce, encrypted, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return plaintext, nil
 }

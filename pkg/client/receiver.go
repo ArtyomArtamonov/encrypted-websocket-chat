@@ -23,7 +23,6 @@ func (c *Client) receiver(doneCh chan struct{}) {
 		var decrypted []byte
 		if c.aesKey != nil {
 			decrypted, err = ciphers.DecryptDataAES(message, c.aesKey)
-			
 		} else {
 			decrypted, err = ciphers.DecryptWithPrivateKey(message, c.PrivateKey)
 		}
@@ -42,8 +41,6 @@ func (c *Client) receiver(doneCh chan struct{}) {
 			}
 			messageConstructor = ""
 		}
-		
-		
 
 		switch frame.Type {
 		case MessageFrameType:
@@ -63,7 +60,7 @@ func (c *Client) receiver(doneCh chan struct{}) {
 			aesKey := ciphers.GenerateKeyAES()
 			c.aesKey = aesKey
 			c.marshalAndSendRecursivly(AesHandshakeFrameType, aesKey, c.sendRSA)
-			
+
 			log.Printf("aes was sent")
 		case AesHandshakeFrameType:
 			c.aesKey = frame.Data
